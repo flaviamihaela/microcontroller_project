@@ -1,17 +1,29 @@
-#include "mbed.h"
-#include "C12832.h" //Makes the driver code for LCD on the Application Shield available in this program
+#include "mbed.h" // Main Mbed OS header file for general functions and definitions
+#include "C12832.h" //Makes driver code for LCD on Application Shield available for displaying data
 
-C12832 lcd(D11, D13, D12, D7, D10);//Creates an object to represent the LCD and defines the microcontroller pins that are used
-RawSerial usart(PA_11, PA_12);//creates a serial port object, which is connected to the specified Tx and Rx pins in constructor
+//Creates LCD object and defines microcontroller pins for SPI communication and control
+C12832 lcd(D11, D13, D12, D7, D10);
 
+// Creates serial port object, using PA_11 as Tx and PA_12 as Rx 
+RawSerial usart(PA_11, PA_12);
+
+// Callback function for receiving data
 void Rxcallback (void) {
-while (!usart.readable()){}; //if the Rx pin is not readable the code will not execute
-lcd.locate (0,15); //output position on the LCD is specified
+//Loop until Rx pin is readable/ data is available
+while (!usart.readable()){}; 
+
+//Specify output position on LCD
+lcd.locate (0,15);
+// Read a character from the serial port and display it on the LCD
 lcd.printf("%d ", usart.getc());
 }
 
+// Callback function for transmitting data
 void Txcallback (void) {
-static int  i=0; // a variable whose lifetime is the entire run of the program
+
+// Static variable 'i', retains its value between function calls
+static int  i=0; 
+
 if (usart.writeable())
 {
 usart.putc(i); //usart stores the i value
@@ -22,15 +34,21 @@ i++;// i is incremented (counter)
 }
 
 int main() {
+// Initialize digital output for controlling an LED on pin PB_4
 DigitalOut redLED(PB_4);
+// Set LED to off (assuming active high logic)
 redLED = 0;
 lcd.cls();
 lcd.locate (0,3);
+// Print "Rx", indicating readiness to receive data
 lcd.printf("Rx");
+// Set the baud rate for serial communication to 115200 bps
 usart.baud(115200);//baudrate of both Tx and Rx
 
+ // Attach callback functions to serial interrupts for receiving and transmitting 
 usart.attach(&Rxcallback, Serial::RxIrq);
 usart.attach(&Txcallback, Serial::TxIrq);
 
+// Infinite loop to keep the program running
 while (1);
 }
