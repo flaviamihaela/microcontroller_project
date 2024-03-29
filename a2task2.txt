@@ -1,0 +1,75 @@
+#include "mbed.h"
+
+class Potentiometer {
+protected:
+    AnalogIn inputSignal;
+    float VDD, currentSamplePC, currentSampleVolts;
+public:
+    Potentiometer(PinName pin, float v) : inputSignal(pin), VDD(v) 
+     {currentSamplePC = 0.0;
+      currentSampleVolts = 0.0;}
+    float amplitudeVolts(void) { return (inputSignal.read()*VDD); }
+    float amplitudePC(void) { return inputSignal.read(); }
+    void sample(void) 
+     {currentSamplePC = inputSignal.read();
+      currentSampleVolts = currentSamplePC * VDD;}
+    float getCurrentSampleVolts(void) { return currentSampleVolts; }
+    float getCurrentSamplePC(void) { return currentSamplePC; }
+};
+
+
+class SamplingPotentiometer: public Potentiometer {
+private:
+Ticker tkr;
+float fs;
+public:
+    SamplingPotentiometer(PinName pin, float v, float f1) : Potentiometer(pin, v), fs(f1)
+    {tkr.attach(callback(this, &SamplingPotentiometer::sample),(1/fs));}
+};
+
+
+class PwmSpeaker {
+private:
+    PwmOut outputSignal;
+    float period; // in sec
+    float frequency; // in Hz
+    float minFreq, maxFreq, frac; // min/max in Hz
+public:
+    PwmSpeaker(PinName pin, float freq): outputSignal(pin), frequency(freq)
+    {outputSignal.write(0.50f);//50% duty cycle
+    }
+        
+    void setFreq(float f) {frequency = f;}
+    void setMinFreq(float fn) {minFreq = fn;}
+    void setMaxFreq(float fx) {maxFreq = fx;}
+    void setFrac(float frc) {frac = frc;}
+    
+    float getFreq(void) {return frequency;}
+    float getMinFreq(void) {return minFreq;}
+    float getMaxFreq(void) {return maxFreq;}
+    float getFrac(void) {return frac;}
+    
+    void calc_period(){period=1/(frequency);}
+  
+    void updateFreq(float fn, float fx, float fc) {
+        frequency = fc*(fx-fn)+fn;
+        calc_period();
+        outputSignal.period(period);//set period
+        }
+    void updatefreq(float f){
+        frequency=f;
+        calc_period();
+        outputSignal.period(period);
+        }
+        
+};
+
+int main()
+{  
+    SamplingPotentiometer smplpot(A0, 3.3, 1000);
+    PwmSpeaker p(D6, 2000);
+    //p.setMaxFreq(9000);
+    //p.setMinFreq(1000);
+    while (true) { p.updateFreq(1000, 9000, smplpot.getCurrentSamplePC() );
+                   wait(0.01);};
+}

@@ -1,0 +1,117 @@
+#include "mbed.h"
+#include "C12832.h"
+
+
+
+C12832 lcd(D11, D13, D12, D7, D10);
+ typedef enum {sender, receiver, senderReceiver}Direction;
+ class Buffer {
+ public:
+    Buffer();
+    Buffer (int s);
+    ~Buffer();
+    void put (int i);
+    int get();
+    bool isFull();
+    bool isEmpty();
+ private:
+    int* buf;
+    int size, count;
+    int in, out;
+};
+ Buffer::Buffer(int s) {
+    size = s;
+    in = 0;
+    out = 0;
+    count = 0;
+    buf = new int[size];
+}
+ Buffer:: ~Buffer() {delete[]buf;}
+ 
+ bool Buffer::isEmpty(void){
+    return (count == 0);
+}
+ bool Buffer::isFull() {
+    return (count >= size);
+}
+ void Buffer::put(int i) {
+    buf[in] = i;
+    ++count;
+    in=(in+1) % size;
+}
+ int Buffer::get() {
+    int x;
+    x = buf[out];
+    buf[out]=0;
+    --count;
+    out=(out+1) % size;
+    return (x);
+}
+ class ASCommunicator {
+    protected:
+        RawSerial rs;
+        int baudRate;
+        Direction commType;
+ 
+    public:
+        ASCommunicator(PinName txp, PinName rxp, int br, Direction commRole);
+ 
+        void setBaudRate(float br); // set Baud rate in bps
+        float getBaudRate(void); // get Baud rate in bps
+        void setDirection(Direction commRole); // sets direction of comm
+        Direction getDirection(void); // gets direction of comm
+};  
+ ASCommunicator::ASCommunicator(PinName txp, PinName rxp,int br,Direction commRole): rs(txp, rxp){
+        baudRate = br;
+        rs.baud(baudRate);
+        commType = commRole;
+    }
+ void ASCommunicator::setBaudRate(float br){rs.baud(br);}
+ float ASCommunicator::getBaudRate(void){return baudRate;}
+ void ASCommunicator::setDirection(Direction commRole){commType = commRole;}
+ Direction ASCommunicator::getDirection(void){return commType; }
+ 
+ class BufferedASCommunicator :public ASCommunicator{
+    private:
+        Buffer RxBuffer, TxBuffer;
+    public:
+            BufferedASCommunicator(PinName txp, PinName rxp, int br, Direction commRole, int siz1, int siz2): ASCommunicator(txp, rxp, br, commRole), RxBuffer(siz1), TxBuffer(siz2){
+                int static s=0;
+                int static n=4;
+                while(!TxBuffer.isFull()){
+                    TxBuffer.put(s);
+                    s=s+n;
+                }
+                rs.attach(callback(this,&BufferedASCommunicator::RxCallback), RawSerial::RxIrq);
+                rs.attach(callback(this,&BufferedASCommunicator::TxCallback), RawSerial::TxIrq);
+                }
+        bool canTx(void){
+            return rs.writeable();
+            } // returns true if USART can send
+        bool canRx(void){ 
+            return rs.readable();
+            } // returns true if USART can receive
+            
+        void TxCallback(void){
+            if ((canTx())&&(!TxBuffer.isEmpty())){
+            rs.putc(TxBuffer.get());
+            wait (1.0);
+            }
+         } 
+         
+        void RxCallback(void){
+            while(!canRx()){};
+            RxBuffer.put(rs.getc());
+            lcd.locate (0,15);
+            lcd.printf("%d ", RxBuffer.get());
+         } 
+        
+ 
+};
+int main() {
+
+ lcd.locate(3, 15);
+ lcd.printf("Rx");
+ BufferedASCommunicator asc(PA_11, PA_12, 5000, senderReceiver, 200, 200);
+ while(true);
+}

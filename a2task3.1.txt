@@ -1,0 +1,64 @@
+#include "mbed.h"
+#include "C12832.h"
+C12832 lcd(D11, D13, D12, D7, D10);
+
+typedef enum {sender, receiver, senderReceiver}Direction;
+class ASCommunicator {
+ 
+ private:
+ RawSerial rs;
+ int baudRate;
+ Direction commType;
+ 
+ public:
+ ASCommunicator(PinName txp, PinName rxp, int br, Direction commRole);
+ 
+ void setBaudRate(float br); // set Baud rate in bps
+ 
+ float getBaudRate(void); // get Baud rate in bps
+ 
+ void setDirection(Direction commRole); // sets direction of comm
+ 
+ Direction getDirection(void); // gets direction of comm
+ 
+ bool canTx(void){return rs.writeable();} // returns true if USART can send
+ 
+ bool canRx(void){ return rs.readable();} // returns true if USART can receive
+ 
+ void Tx(char c){
+     if (canTx()){
+         rs.putc(c);
+         wait (1.0);
+         }
+         } // send a char
+         
+ char Rx(void){
+     while(!canRx()){};
+     return(rs.getc());
+     } // receive a char
+};    
+ ASCommunicator::ASCommunicator(PinName txp, PinName rxp,int br,Direction commRole): rs(txp, rxp){
+ baudRate = br;
+ rs.baud(baudRate);
+ commType = commRole;
+}
+
+ void ASCommunicator::setBaudRate(float br){rs.baud(br);}
+
+ float ASCommunicator::getBaudRate(void){return baudRate;}
+
+ void ASCommunicator::setDirection(Direction commRole){commType = commRole;}
+
+ Direction ASCommunicator::getDirection(void){return commType; }
+
+int main() {
+ char i = 0;
+ 
+ ASCommunicator asc(PA_11, PA_12, 5000, senderReceiver);
+ while(true) {
+ lcd.locate(3, 15);
+ asc.Tx(i);
+ i++;
+ lcd.printf("%d ", asc.Rx());
+ }
+}

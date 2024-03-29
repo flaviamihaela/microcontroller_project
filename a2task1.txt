@@ -1,0 +1,36 @@
+#include "mbed.h"
+#include "C12832.h" //Makes the driver code for LCD on the Application Shield available in this program
+
+C12832 lcd(D11, D13, D12, D7, D10);//Creates an object to represent the LCD and defines the microcontroller pins that are used
+RawSerial usart(PA_11, PA_12);//creates a serial port object, which is connected to the specified Tx and Rx pins in constructor
+
+void Rxcallback (void) {
+while (!usart.readable()){}; //if the Rx pin is not readable the code will not execute
+lcd.locate (0,15); //output position on the LCD is specified
+lcd.printf("%d ", usart.getc());
+}
+
+void Txcallback (void) {
+static int  i=0; // a variable whose lifetime is the entire run of the program
+if (usart.writeable())
+{
+usart.putc(i); //usart stores the i value
+wait (1.0);
+i++;// i is incremented (counter)
+}
+
+}
+
+int main() {
+DigitalOut redLED(PB_4);
+redLED = 0;
+lcd.cls();
+lcd.locate (0,3);
+lcd.printf("Rx");
+usart.baud(115200);//baudrate of both Tx and Rx
+
+usart.attach(&Rxcallback, Serial::RxIrq);
+usart.attach(&Txcallback, Serial::TxIrq);
+
+while (1);
+}
