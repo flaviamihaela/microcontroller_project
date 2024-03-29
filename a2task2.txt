@@ -1,44 +1,63 @@
 #include "mbed.h"
 
+// Define Potentiometer class
 class Potentiometer {
 protected:
-    AnalogIn inputSignal;
-    float VDD, currentSamplePC, currentSampleVolts;
+    AnalogIn inputSignal; 
+    float VDD; // Reference voltage
+    float currentSamplePC; // Current sample in percentage (0.0 to 1.0)
+    float currentSampleVolts; // Current sample in volts
 public:
-    Potentiometer(PinName pin, float v) : inputSignal(pin), VDD(v) 
-     {currentSamplePC = 0.0;
-      currentSampleVolts = 0.0;}
+    Potentiometer(PinName pin, float v) : inputSignal(pin), VDD(v) {
+        currentSamplePC = 0.0;
+        currentSampleVolts = 0.0;
+    }
+
+    // Returns amplitude of signal in volts
     float amplitudeVolts(void) { return (inputSignal.read()*VDD); }
+
+    // Returns amplitude of signal in percentage
     float amplitudePC(void) { return inputSignal.read(); }
-    void sample(void) 
-     {currentSamplePC = inputSignal.read();
-      currentSampleVolts = currentSamplePC * VDD;}
+
+    // Samples current value from potentiometer and updates member variables
+    void sample(void) {
+        // Read current value in percentage
+        currentSamplePC = inputSignal.read();
+        // Convert percentage to volts
+        currentSampleVolts = currentSamplePC * VDD;
+    }
+
+    // Getters for current sample values
     float getCurrentSampleVolts(void) { return currentSampleVolts; }
     float getCurrentSamplePC(void) { return currentSamplePC; }
 };
 
-
+// Defines class that inherits from Potentiometer and adds functionality to sample potentiometer value at fixed frequency
 class SamplingPotentiometer: public Potentiometer {
 private:
-Ticker tkr;
-float fs;
+Ticker tkr; // Ticker for setting up a periodic sampling interrupt
+float fs; // Sampling frequency
+
 public:
-    SamplingPotentiometer(PinName pin, float v, float f1) : Potentiometer(pin, v), fs(f1)
-    {tkr.attach(callback(this, &SamplingPotentiometer::sample),(1/fs));}
+    SamplingPotentiometer(PinName pin, float v, float f1) : Potentiometer(pin, v), fs(f1) {
+        // Attach sample function to ticker with specified sampling frequency
+        tkr.attach(callback(this, &SamplingPotentiometer::sample),(1/fs));
+        }
 };
 
-
+// Defines PwmSpeaker class for outputting PWM signal to speaker
 class PwmSpeaker {
 private:
-    PwmOut outputSignal;
-    float period; // in sec
-    float frequency; // in Hz
-    float minFreq, maxFreq, frac; // min/max in Hz
+    PwmOut outputSignal; // PWM output to control speaker
+    float period; // PWM period in seconds (inverse of frequency)
+    float frequency; // PWM frequency in Hz
+    float minFreq, maxFreq, frac; // Minimum and maximum frequency and a fractional value for scaling
 public:
-    PwmSpeaker(PinName pin, float freq): outputSignal(pin), frequency(freq)
-    {outputSignal.write(0.50f);//50% duty cycle
+    PwmSpeaker(PinName pin, float freq): outputSignal(pin), frequency(freq) {
+        outputSignal.write(0.50f); //50% duty cycle
     }
-        
+    
+    // Setter and getter methods for frequency and scaling parameters
     void setFreq(float f) {frequency = f;}
     void setMinFreq(float fn) {minFreq = fn;}
     void setMaxFreq(float fx) {maxFreq = fx;}
@@ -49,13 +68,18 @@ public:
     float getMaxFreq(void) {return maxFreq;}
     float getFrac(void) {return frac;}
     
+    // Calculates PWM period based on current frequency
     void calc_period(){period=1/(frequency);}
-  
+
+    // Updates frequency and PWM period based on fractional value (fc) between min and max frequency
     void updateFreq(float fn, float fx, float fc) {
-        frequency = fc*(fx-fn)+fn;
+        frequency = fc*(fx-fn)+fn; // Scale frequency within specified range
+        // Recalculate period
         calc_period();
-        outputSignal.period(period);//set period
+        // Update PWM period
+        outputSignal.period(period);
         }
+    // Directly updates frequency and PWM period
     void updatefreq(float f){
         frequency=f;
         calc_period();
@@ -66,10 +90,16 @@ public:
 
 int main()
 {  
+    // Initialize a SamplingPotentiometer with pin A0, reference voltage 3.3V
     SamplingPotentiometer smplpot(A0, 3.3, 1000);
+    // Initialize a PwmSpeaker with pin D6 and frequency 2000Hz
     PwmSpeaker p(D6, 2000);
     //p.setMaxFreq(9000);
     //p.setMinFreq(1000);
-    while (true) { p.updateFreq(1000, 9000, smplpot.getCurrentSamplePC() );
-                   wait(0.01);};
+    while (true) {
+         // Update speaker frequency based on potentiometer's current sample, scaling it between 1000Hz and 9000Hz
+        p.updateFreq(1000, 9000, smplpot.getCurrentSamplePC() );
+        // Short delay to stabilize the loop
+        wait(0.01); 
+    };
 }
