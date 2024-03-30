@@ -29,7 +29,7 @@ Key points:
 - Usage of a loop in the main function to transmit characters incrementally and display received characters on an LCD screen.
 - Consideration of potential impacts on communication rates and program responsiveness due to the wait(1.0) delay in the transmission method and the blocking call in the reception method.
 
-## Task 3.2 
+## Task 3.2: Buffered Asynchronous Serial Communication
 
 This task extends asynchronous serial communication with buffered input and output, utilizing the Buffer, ASCommunicator, and BufferedASCommunicator classes. 
 
