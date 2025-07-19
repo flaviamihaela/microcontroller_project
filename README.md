@@ -38,5 +38,41 @@ This task extends asynchronous serial communication with buffered input and outp
 - Extension of ASCommunicator with buffering capabilities in the BufferedASCommunicator class, including pre-filling the transmit buffer and handling data transmission and reception using interrupts.
 - Example usage in the main function, demonstrating management of serial communication with buffered input and output, and displaying received data on an LCD.
 
+## Build & Run
+
+1. Clone the repository to your local machine.
+
+2. Navigate to the project directory.
+
+3. Set target and toolchain:
+
+```bash
+>> mbed target NUCLEO_F401RE
+>> mbed toolchain GCC_ARM
+```
+
+4. Complile
+```bash
+>> mbed compile -f
+```
+
+5. Drag and drop the .bin file to the board's storage to deploy and flash
+
+## Usage
+
+Tuning Baud Rate: usart.baud(115200), sets USART communication speed.
+
+USART pins: RawSerial usart(PA_11, PA_12), defines which board pins are used for USART communication.
+
+LED pins: DigitalOut redLED(PB_4), for status indication.
+
+LCD output: lcd.locate(0.15), sets x-y position of output on LCD for printing.
+
 Note: The wait(1.0) delay in the TxCallback method might affect applications requiring higher throughput or responsiveness.
+
+## Dependencies
+
+Hardware: STM32-based Mbed board, Mbed Application Shield, USB cable
+CLI : Mbed CLI with CMake
+
 
