@@ -33,6 +33,7 @@ Key points:
 
 This task extends asynchronous serial communication with buffered input and output, utilizing the Buffer, ASCommunicator, and BufferedASCommunicator classes. 
 
+Key points:
 - Implementation of a circular buffer for storing integers and managing full/empty states in the Buffer class.
 - Basic asynchronous serial communication setup in the ASCommunicator class.
 - Extension of ASCommunicator with buffering capabilities in the BufferedASCommunicator class, including pre-filling the transmit buffer and handling data transmission and reception using interrupts.
