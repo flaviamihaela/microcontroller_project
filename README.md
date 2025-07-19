@@ -1,4 +1,4 @@
-# Microcontroller_Engineering
+# microcontroller_project
 This repository contains microcontroller tasks utilizing Mbed OS libraries for handling various functionalities like LCD display and serial communication. The tasks demonstrate sending and receiving serial data, displaying data on an LCD, and controlling a PWM-driven speaker based on analog input from a potentiometer.
 
 ## Task 1: Serial Communication
