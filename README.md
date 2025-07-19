@@ -42,7 +42,7 @@ This task extends asynchronous serial communication with buffered input and outp
 
 1. Clone the repository to your local machine.
 
-2. Navigate to the project directory.
+2. Navigate to the task directory.
 
 3. Set target and toolchain:
 
@@ -56,7 +56,7 @@ This task extends asynchronous serial communication with buffered input and outp
 >> mbed compile -f
 ```
 
-5. Drag and drop the .bin file to the board's storage to deploy and flash
+5. Drag and drop the .bin file (of that specific task) to the board's storage to deploy and flash
 
 ## Usage
 
@@ -73,6 +73,7 @@ Note: The wait(1.0) delay in the TxCallback method might affect applications req
 ## Dependencies
 
 Hardware: STM32-based Mbed board, Mbed Application Shield, USB cable
+
 CLI : Mbed CLI with CMake
 
 
