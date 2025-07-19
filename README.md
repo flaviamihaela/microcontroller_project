@@ -69,8 +69,6 @@ LED pins: DigitalOut redLED(PB_4), for status indication.
 
 LCD output: lcd.locate(0.15), sets x-y position of output on LCD for printing.
 
-Note: The wait(1.0) delay in the TxCallback method might affect applications requiring higher throughput or responsiveness.
-
 ## Dependencies
 
 Hardware: STM32-based Mbed board, Mbed Application Shield, USB cable
