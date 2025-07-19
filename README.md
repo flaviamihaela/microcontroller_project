@@ -48,6 +48,7 @@ Key points:
 3. Set target and toolchain:
 
 ```bash
+>> mbed new .
 >> mbed target NUCLEO_F401RE
 >> mbed toolchain GCC_ARM
 ```
@@ -71,8 +72,8 @@ LCD output: lcd.locate(0.15), sets x-y position of output on LCD for printing.
 
 ## Dependencies
 
-- STM32-based Mbed board, Mbed Application Shield, USB cable
-- Mbed CLI with CMake
-- Toolchain GCC_ARM
+- STM32 Mbed board, Mbed Application Shield, USB cable
+- Mbed OS, Mbed CLI 1, Toolchain GCC_ARM
+- C12832 library
 
 
