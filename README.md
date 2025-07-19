@@ -71,8 +71,8 @@ LCD output: lcd.locate(0.15), sets x-y position of output on LCD for printing.
 
 ## Dependencies
 
-Hardware: STM32-based Mbed board, Mbed Application Shield, USB cable
+- Hardware: STM32-based Mbed board, Mbed Application Shield, USB cable
 
-CLI : Mbed CLI with CMake
+- CLI : Mbed CLI with CMake
 
 
